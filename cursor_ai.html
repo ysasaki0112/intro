@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor AI導入効果とROI調査</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Meiryo UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '💻✨';
+            font-size: 60px;
+            position: absolute;
+            top: 20px;
+            right: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .section {
+            padding: 40px;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            margin: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        
+        .productivity-section {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+        
+        .roi-section {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+        
+        .features-section {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+        
+        .cases-section {
+            background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);
+        }
+        
+        .section h2 {
+            font-size: 2em;
+            margin-bottom: 30px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            animation: fadeInUp 0.8s ease-out;
+            animation-fill-mode: both;
+        }
+        
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.3s; }
+        .stat-card:nth-child(3) { animation-delay: 0.5s; }
+        .stat-card:nth-child(4) { animation-delay: 0.7s; }
+        
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #2196F3;
+            display: block;
+            margin-bottom: 10px;
+            animation: countUp 1.5s ease-out;
+            text-shadow: 2px 2px 4px rgba(33, 150, 243, 0.3);
+        }
+        
+        @keyframes countUp {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            60% {
+                transform: scale(1.1);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .stat-label {
+            font-size: 1.1em;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .comparison-chart {
+            display: flex;
+            align-items: end;
+            justify-content: space-around;
+            height: 200px;
+            margin: 30px 0;
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .bar {
+            width: 80px;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: end;
+            align-items: center;
+            animation: barGrowUp 1.5s ease-out;
+            transform-origin: bottom;
+        }
+        
+        .bar-before {
+            height: 150px;
+            background: linear-gradient(to top, #ff6b6b, #ff8a80);
+            animation-delay: 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .bar-after {
+            height: 65px;
+            background: linear-gradient(to top, #4ecdc4, #26a69a);
+            animation-delay: 1s;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+        }
+        
+        @keyframes barGrowUp {
+            0% {
+                height: 0;
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -40px;
+            font-weight: bold;
+            font-size: 0.9em;
+            text-align: center;
+            width: 100px;
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -30px;
+            font-weight: bold;
+            color: #333;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background: rgba(255,255,255,0.9);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #2196F3;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .feature-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .roi-calculator {
+            background: rgba(255,255,255,0.9);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .roi-visual {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .roi-item {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            animation: slideInFromSides 1s ease-out;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .roi-cost {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            animation-delay: 0.2s;
+            animation-name: slideInLeft;
+        }
+        
+        .roi-benefit {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            animation-delay: 0.6s;
+            animation-name: slideInRight;
+        }
+        
+        @keyframes slideInLeft {
+            0% {
+                transform: translateX(-100px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideInRight {
+            0% {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .roi-arrow {
+            font-size: 3em;
+            color: #2196F3;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+        }
+        
+        .companies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .company-card {
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .testimonial {
+            background: rgba(255,255,255,0.9);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #4ecdc4;
+            font-style: italic;
+            position: relative;
+        }
+        
+        .testimonial::before {
+            content: '"';
+            font-size: 4em;
+            color: #4ecdc4;
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            line-height: 1;
+        }
+        
+        .pie-chart {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(#2196F3 0deg 140deg, #ff6b6b 140deg 360deg);
+            margin: 20px auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pieRotate 2s ease-in-out;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        @keyframes pieRotate {
+            0% {
+                transform: rotate(-90deg) scale(0);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: rotate(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .pie-center {
+            background: white;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .highlight-number {
+            color: #2196F3;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .roi-visual {
+                flex-direction: column;
+            }
+            
+            .comparison-chart {
+                height: 150px;
+            }
+            
+            .bar {
+                width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cursor AI導入効果とROI調査</h1>
+            <p>次世代AI開発支援ツールによる革新的な生産性向上</p>
+        </div>
+        
+        <div class="section productivity-section">
+            <h2>📈 驚異的な生産性向上効果</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-number">77%</span>
+                    <div class="stat-label">新機能実装が<br>高速化</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">42%</span>
+                    <div class="stat-label">バグ修正時間が<br>短縮</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">2-3倍</span>
+                    <div class="stat-label">コーディング・<br>リファクタリング速度</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">50%</span>
+                    <div class="stat-label">コードスメルを<br>自動修正</div>
+                </div>
+            </div>
+            
+            <div class="comparison-chart">
+                <div class="bar bar-before">
+                    <div class="bar-value">100時間</div>
+                    <div class="bar-label">導入前</div>
+                </div>
+                <div class="roi-arrow" style="animation-delay: 1.5s;">→</div>
+                <div class="bar bar-after">
+                    <div class="bar-value">43時間</div>
+                    <div class="bar-label">導入後</div>
+                </div>
+            </div>
+            
+            <p style="text-align: center; font-size: 1.1em; color: #333; margin-top: 20px;">
+                🎯 開発者は週平均<span class="highlight-number">17.3時間</span>をデバッグに費やしているが、Cursor導入でこの時間を大幅削減！
+            </p>
+            
+            <div style="background: rgba(255,255,255,0.9); padding: 20px; border-radius: 10px; margin-top: 30px; font-size: 0.9em; color: #666;">
+                <h4 style="color: #333; margin-bottom: 15px;">📊 データ出典</h4>
+                <ul style="line-height: 1.6; list-style: none; padding-left: 0;">
+                    <li>• <strong>57%高速化・42%短縮:</strong> <a href="https://uibakery.io/blog/what-is-cursor-a" target="_blank" style="color: #2196F3;">UI Bakery Blog - Cursor AI分析</a></li>
+                    <li>• <strong>2-3倍速度向上:</strong> <a href="https://www.cursor.com/en" target="_blank" style="color: #2196F3;">Cursor公式サイト</a></li>
+                    <li>• <strong>50%自動修正:</strong> <a href="https://digitaldefynd.com/IQ/pros-cons-of-cursor-ai/" target="_blank" style="color: #2196F3;">DigitalDefynd Cursor AI分析</a></li>
+                    <li>• <strong>17.3時間デバッグ:</strong> <a href="https://rolloutit.net/increase-your-productivity-by-changing-your-ide-to-cursor-ai/" target="_blank" style="color: #2196F3;">Rollout IT 生産性調査</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="section roi-section">
+            <h2>💰 投資対効果（ROI）分析</h2>
+            
+            <div class="roi-calculator">
+                <h3 style="margin-bottom: 20px; color: #333;">4人チームでの月間ROI試算</h3>
+                
+                <div class="roi-visual">
+                    <div class="roi-item roi-cost">
+                        <h4>💸 コスト</h4>
+                        <div style="font-size: 2em; margin: 10px 0;">¥11,200</div>
+                        <p>月額ツール利用料</p>
+                    </div>
+                    
+                    <div class="roi-arrow">📊</div>
+                    
+                    <div class="roi-item roi-benefit">
+                        <h4>💎 効果</h4>
+                        <div style="font-size: 2em; margin: 10px 0;">¥200,000</div>
+                        <p>人件費削減効果</p>
+                    </div>
+                </div>
+                
+                <div style="background: linear-gradient(45deg, #4ecdc4, #44a08d); color: white; padding: 20px; border-radius: 15px; margin-top: 20px;">
+                    <h3>🚀 投資対効果：約18倍！</h3>
+                    <p style="margin-top: 10px;">1日たった30分の時間短縮で月40時間の削減効果</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section features-section">
+            <h2>⚡ Cursor AIの主要機能</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-title">🎯 高度なコード自動補完</div>
+                    <p>カーソル位置から次に書くべきコード全体を予測。複数行にわたる編集提案で効率的な開発を実現</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">💬 自然言語によるコード生成</div>
+                    <p>Ctrl+Kで呼び出せるAIチャットで、日本語の指示からコードを生成・編集。対話的な開発が可能</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">🔍 コードベース全体の理解</div>
+                    <p>プロジェクト全体をインデックス化し、大規模コードベースでも的確な回答と提案を提供</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">🐛 エラー検知・自動デバッグ</div>
+                    <p>エラーメッセージを自動認識し、リアルタイムで修正提案。デバッグ時間を大幅短縮</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">🔧 Git連携・レビュー支援</div>
+                    <p>コミットメッセージ自動生成、変更内容要約、プルリクエストの自動チェック機能</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">🔒 プライバシー配慮</div>
+                    <p>Privacy Modeでコードをクラウドに送信せず、SOC 2認証取得で企業利用も安心</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section cases-section">
+            <h2>🏢 導入事例・ユーザーの声</h2>
+            
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h3 style="color: #333; margin-bottom: 15px;">🌍 世界的な採用実績</h3>
+                <div class="pie-chart">
+                    <div class="pie-center">数百万<br>エンジニア</div>
+                </div>
+                <p><span class="highlight-number">5万社以上</span>の企業が導入済み</p>
+            </div>
+            
+            <div class="companies-grid">
+                <div class="company-card">
+                    <h4>🚀 Upwork</h4>
+                    <p>プルリクエスト<span class="highlight-number">25%増</span><br>出荷コード量<span class="highlight-number">1.5倍</span></p>
+                </div>
+                
+                <div class="company-card">
+                    <h4>💳 Brex</h4>
+                    <p>エンジニアの<span class="highlight-number">70%</span>が使用<br>コード変更の<span class="highlight-number">45%</span>がAI生成</p>
+                </div>
+                
+                <div class="company-card">
+                    <h4>👥 Rippling</h4>
+                    <p>150人→<span class="highlight-number">500人超</span>に拡大<br>数週間で急速普及</p>
+                </div>
+                
+                <div class="company-card">
+                    <h4>📊 Datadog</h4>
+                    <p>AIエージェントとの<br>ペアプログラミングを実現</p>
+                </div>
+            </div>
+            
+            <div class="testimonial">
+                <p>"CursorはCopilotより少なくとも2倍の改善。AIペアプログラマがいるようなもので、チームにとって素晴らしい加速装置だ"</p>
+                <div style="text-align: right; margin-top: 15px; font-weight: bold;">- Instacart エンジニア</div>
+            </div>
+            
+            <div class="testimonial">
+                <p>"月20ドルの投資で数千ドル分の開発時間を節約。開発期間を従来の6分の1に短縮できた"</p>
+                <div style="text-align: right; margin-top: 15px; font-weight: bold;">- 実際のユーザー</div>
+            </div>
+            
+            <div class="testimonial">
+                <p>"もはやCursorなしではコーディングできない。頭で考えるより先にCursorが提案を出してくれる"</p>
+                <div style="text-align: right; margin-top: 15px; font-weight: bold;">- Figma エンジニア</div>
+            </div>
+        </div>
+        
+        <div style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 40px; text-align: center; margin: 30px; border-radius: 15px;">
+            <h2 style="margin-bottom: 20px;">🎯 まとめ</h2>
+            <p style="font-size: 1.2em; line-height: 1.6;">
+                Cursor AIは単なるコード補完ツールを超えた、<br>
+                開発者の創造性を最大化する革新的なAI開発環境です。<br><br>
+                <span style="font-size: 1.4em; font-weight: bold;">投資対効果18倍</span>という驚異的なROIで、<br>
+                あなたのチームの開発スピードを飛躍的に向上させます！
+            </p>
+        </div>
+    </div>
+</body>
+</html>
